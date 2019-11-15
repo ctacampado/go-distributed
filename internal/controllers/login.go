@@ -5,9 +5,16 @@ import (
 	"fmt"
 	dbclient "go-distributed/pkg/dbclient"
 	"net/http"
+	"os"
 
 	"github.com/julienschmidt/httprouter"
 )
+
+//Credentials -
+type Credentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
 //Login -
 type Login struct {
@@ -16,20 +23,29 @@ type Login struct {
 }
 
 //NewLogin -
-func NewLogin(params *dbclient.DBParams) *Login {
-
+func NewLogin() *Login {
 	return &Login{
-		Router: httprouter.New(),
-		DB:     dbclient.InitDB(params),
+		Router: initRouter(),
+		DB: dbclient.InitDB(&dbclient.DBParams{
+			Addr: dbclient.DBAddr{
+				DBname: os.Getenv("DB_NAME"),
+				Host:   os.Getenv("DB_HOST"),
+				Port:   os.Getenv("DB_PORT"),
+			},
+			User:     os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASSWORD"),
+			Sslmode:  os.Getenv("DB_SSL_MODE"),
+		}),
 	}
 }
 
-//InitRoutes -
-func (l *Login) InitRoutes() {
-	l.Router.GET("/", Index)
+func initRouter() *httprouter.Router {
+	router := httprouter.New()
+	router.GET("/", index)
+
+	return router
 }
 
-//Index -
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "Welcome!\n")
 }
