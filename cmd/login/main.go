@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 
 	"github.com/subosito/gotenv"
@@ -20,6 +22,8 @@ func init() {
 	gotenv.Load()
 }
 
+const port = "8080"
+
 func main() {
 	//initialize db
 
@@ -33,23 +37,10 @@ func main() {
 		Password: os.Getenv("DB_PASSWORD"),
 		Sslmode:  os.Getenv("DB_SSL_MODE"),
 	}
-	fmt.Println(params)
-	/*
-		params := &dbclient.DBParams{
-			Addr: dbclient.DBAddr{
-				DBname: "logindb",
-				Host:   "127.0.0.1",
-				Port:   "5432",
-			},
-			User:     "postgres",
-			Password: "postgres",
-			Sslmode:  "disable",
-		}*/
 	login := controller.NewLogin(params)
 	defer login.DB.Close()
-	fmt.Printf("%+v\n", login.DB.Stats())
-	//setup an http server
-	//login.InitRoutes()
-	//listen for server connections
-	//log.Fatal(http.ListenAndServe(":3000", login.Router))
+
+	login.InitRoutes()
+	fmt.Println("login server listening at localhost:", port)
+	log.Fatal(http.ListenAndServe(":"+port, login.Router))
 }
