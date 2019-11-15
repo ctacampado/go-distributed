@@ -2,26 +2,34 @@ package controllers
 
 import (
 	"database/sql"
+	"fmt"
 	dbclient "go-distributed/pkg/dbclient"
-	"os"
+	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 //Login -
 type Login struct {
-	DB *sql.DB
+	Router *httprouter.Router
+	DB     *sql.DB
 }
 
 //NewLogin -
-func NewLogin() *Login {
-	params := dbclient.DBParams{
-		Addr: dbclient.DBAddr{
-			DBname: os.Getenv("DB_NAME"),
-			Host:   os.Getenv("DB_HOST"),
-			Port:   os.Getenv("DB_PORT"),
-		},
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
-		Sslmode:  os.Getenv("DB_SSL_MODE"),
+func NewLogin(params *dbclient.DBParams) *Login {
+
+	return &Login{
+		Router: httprouter.New(),
+		DB:     dbclient.InitDB(params),
 	}
-	return &Login{DB: dbclient.InitDB(params)}
+}
+
+//InitRoutes -
+func (l *Login) InitRoutes() {
+	l.Router.GET("/", Index)
+}
+
+//Index -
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "Welcome!\n")
 }

@@ -22,7 +22,7 @@ type DBParams struct {
 }
 
 //InitDB -
-func InitDB(params DBParams) *sql.DB {
+func InitDB(params *DBParams) *sql.DB {
 	dbinfo := "user=" + params.User +
 		" password=" + params.Password +
 		" dbname=" + params.Addr.DBname +
