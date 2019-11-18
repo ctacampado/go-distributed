@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	dbclient "go-distributed/pkg/dbclient"
 	"net/http"
@@ -41,11 +42,33 @@ func NewLogin() *Login {
 
 func initRouter() *httprouter.Router {
 	router := httprouter.New()
-	router.GET("/", index)
+	router.GET("/", Index)
+	router.POST("/register", HandleRegister)
 
 	return router
 }
 
-func index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprint(w, "Welcome!\n")
+//Index -
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "Welcome!")
+}
+
+//HandleRegister -
+func HandleRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	c := Credentials{}
+
+	err := json.NewDecoder(r.Body).Decode(&c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println(c)
+
+	resp, _ := json.Marshal(c)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Write(resp)
 }
