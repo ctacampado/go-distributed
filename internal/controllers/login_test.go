@@ -28,12 +28,12 @@ func TestIndex(t *testing.T) {
 	}
 }
 
-func TestHandleRegisterPassThrough(t *testing.T) {
+func TestHandleRegister(t *testing.T) {
 
 	url := "http://localhost:8080/register"
 
-	in := UserCredentials{Username: "user", Password: "password"}
-	exp := struct{ Username string }{Username: "user"}
+	in := UserCredentials{Username: "test", Password: "test"}
+	exp := struct{ message string }{message: "Registration Success!"}
 
 	b, _ := json.Marshal(in)
 	payload := strings.NewReader(string(b))
@@ -52,9 +52,9 @@ func TestHandleRegisterPassThrough(t *testing.T) {
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
-	resp := UserCredentials{}
+	resp := struct{ message string }{}
 	json.Unmarshal(body, &resp)
-	if in.Username == exp.Username {
+	if resp.message == exp.message {
 		fmt.Printf("exp: %+v | res: %+v\n", exp, resp)
 	}
 }

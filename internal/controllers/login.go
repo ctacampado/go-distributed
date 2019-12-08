@@ -57,6 +57,7 @@ func clientError(w *http.ResponseWriter, err *error, status int) {
 func (l *Login) InitRouter() {
 	l.Router.GET("/", l.Index)
 	l.Router.POST("/register", l.HandleRegister)
+	l.Router.POST("/login", l.HandleLogin)
 }
 
 func (l *Login) insertRegistrationToDB(c *UserCredentials) error {
@@ -108,4 +109,10 @@ func (l *Login) HandleRegister(w http.ResponseWriter, r *http.Request, _ httprou
 	}
 
 	w.Write([]byte(`{"message": "Registration Success!"}`))
+}
+
+// HandleLogin accepts a body message containing username and password input
+// from user in order to authenticate.
+func (l *Login) HandleLogin(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	w.Write([]byte(`{"message": "Login Success!"}`))
 }
