@@ -4,71 +4,108 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	dbclient "go-distributed/pkg/dbclient"
 	"net/http"
-	"os"
 
+	uuid "github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
+	pw "go-distributed/pkg/password"
 )
 
-//Credentials -
-type Credentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+// AcctStatus is used as a custom type to
+// easily differentiate between user
+// account status
+type AcctStatus int
+
+// different account status
+const (
+	NEW      AcctStatus = iota + 1 //1
+	VERIFIED                       //2
+	DISABLED                       //3
+)
+
+// UserCredentials structure is similar to the schema used in our DB
+// to store user credentials.
+type UserCredentials struct {
+	ID             string     `json:"id,omitempty" db:"id"`         //unique ID for every user
+	Username       string     `json:"username" db:"username"`       //username should be an email
+	Password       string     `json:"password" db:"password"`       //salted and hashed
+	Status         AcctStatus `json:"Status,omitempty" db:"status"` // says if an account is new, verivied, or disabled
+	FailedAttempts int        `db:"fattempts,omitempty"`            //number of failed sign-in attempts
 }
 
-//Login -
+// Login structure holds pointers necessary for the service to work.
+// These pointers are for the router, and the database
 type Login struct {
 	Router *httprouter.Router
 	DB     *sql.DB
 }
 
-//NewLogin -
+//NewLogin initializes a Login object with a new router
 func NewLogin() *Login {
 	return &Login{
-		Router: initRouter(),
-		DB: dbclient.InitDB(&dbclient.DBParams{
-			Addr: dbclient.DBAddr{
-				DBname: os.Getenv("DB_NAME"),
-				Host:   os.Getenv("DB_HOST"),
-				Port:   os.Getenv("DB_PORT"),
-			},
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
-			Sslmode:  os.Getenv("DB_SSL_MODE"),
-		}),
+		Router: httprouter.New(),
 	}
 }
 
-func initRouter() *httprouter.Router {
-	router := httprouter.New()
-	router.GET("/", Index)
-	router.POST("/register", HandleRegister)
-
-	return router
+//clientError makes it easier to return an error
+func clientError(w *http.ResponseWriter, err *error, status int) {
+	http.Error(*w, (*err).Error(), status)
 }
 
-//Index -
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// InitRouter initializes all the routes together with their respective
+// handlers
+func (l *Login) InitRouter() {
+	l.Router.GET("/", l.Index)
+	l.Router.POST("/register", l.HandleRegister)
+}
+
+func (l *Login) insertRegistrationToDB(c *UserCredentials) error {
+	sqlStatement := `INSERT INTO users VALUES ($1, $2, $3, $4, $5)`
+	_, err := l.DB.Query(sqlStatement, c.ID, c.Username, c.Password, c.Status, c.FailedAttempts)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//Index placeholder
+func (l *Login) Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	fmt.Fprint(w, "Welcome!")
 }
 
-//HandleRegister -
-func HandleRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	c := Credentials{}
-
-	err := json.NewDecoder(r.Body).Decode(&c)
+// HandleRegister accepts a body messge containing usernamer and password.
+// The password is then salted and hashed the HashAndSalt function that is
+// based on bcrypt (more on go-distributed/pkg/password).
+func (l *Login) HandleRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	//store username password to database
+	createReq := new(UserCredentials)
+	err := json.NewDecoder(r.Body).Decode(&createReq)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		clientError(&w, &err, http.StatusUnprocessableEntity)
 		return
 	}
 
-	fmt.Println(c)
-
-	resp, _ := json.Marshal(c)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if createReq.Username == "" || createReq.Password == "" {
+		clientError(&w, &err, http.StatusBadRequest)
 		return
 	}
-	w.Write(resp)
+
+	u, err := uuid.NewRandom()
+	if err != nil {
+		clientError(&w, &err, http.StatusInternalServerError)
+		return
+	}
+	createReq.ID = u.String()
+	createReq.Status = NEW
+	createReq.FailedAttempts = 0
+	createReq.Password = pw.HashAndSalt([]byte(createReq.Password))
+
+	err = l.insertRegistrationToDB(createReq)
+	if err != nil {
+		clientError(&w, &err, http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(`{"message": "Registration Success!"}`))
 }

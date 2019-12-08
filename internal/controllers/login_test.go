@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -33,8 +32,8 @@ func TestHandleRegisterPassThrough(t *testing.T) {
 
 	url := "http://localhost:8080/register"
 
-	in := Credentials{Username: "user", Password: "password"}
-	exp := Credentials{Username: "user", Password: "password"}
+	in := UserCredentials{Username: "user", Password: "password"}
+	exp := struct{ Username string }{Username: "user"}
 
 	b, _ := json.Marshal(in)
 	payload := strings.NewReader(string(b))
@@ -53,9 +52,9 @@ func TestHandleRegisterPassThrough(t *testing.T) {
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
-	resp := Credentials{}
+	resp := UserCredentials{}
 	json.Unmarshal(body, &resp)
-	if reflect.DeepEqual(resp, exp) {
+	if in.Username == exp.Username {
 		fmt.Printf("exp: %+v | res: %+v\n", exp, resp)
 	}
 }
