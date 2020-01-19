@@ -35,11 +35,19 @@ func (a *Auth) InitRouter() {
 	r.Get("/", a.index)
 	r.Post("/register", a.handleRegister)
 	r.Post("/login", a.handleLogin)
+	r.Delete("/user", a.handleDelete)
 }
 
-//Index placeholder
+// Index placeholder
 func (a *Auth) index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Welcome!")
+}
+
+//
+func (a *Auth) handleDelete(w http.ResponseWriter, r *http.Request) {
+	sc := http.StatusOK
+	w.WriteHeader(sc)
+	w.Write([]byte(`{"message": "User Deleted!"}`))
 }
 
 // HandleRegister accepts a body messge containing usernamer and password.
