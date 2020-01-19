@@ -7,7 +7,7 @@ import (
 
 	"github.com/subosito/gotenv"
 
-	controller "go-distributed/internal/controllers"
+	login "go-distributed/internal/login"
 	"go-distributed/pkg/dbclient"
 )
 
@@ -18,12 +18,12 @@ func init() {
 const port = "8080"
 
 func main() {
-	login := controller.NewLogin()
+	l := login.NewLogin()
 
-	login.DB = dbclient.NewDB()
-	defer login.DB.Close()
+	l.DB = dbclient.NewDB()
+	defer l.DB.Close()
 
-	login.InitRouter()
+	l.InitRouter()
 	fmt.Println("login server listening at localhost:", port)
-	log.Fatal(http.ListenAndServe(":"+port, login.Router))
+	log.Fatal(http.ListenAndServe(":"+port, l.Router))
 }
