@@ -1,6 +1,7 @@
 package password
 
 import (
+	"errors"
 	"log"
 
 	bcrypt "golang.org/x/crypto/bcrypt"
@@ -24,16 +25,17 @@ func HashAndSalt(pwd []byte) string {
 }
 
 // ComparePasswords compares the password input by the user
-// to the one that is stored in the DB. Since we'll be getting
-// the hashed password from the DB it will be a string so we'll
-// need to convert it to a byte slice
-func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
+// to the one that is stored in the DB. both passwords
+// has to be converted from string to bytes in order to use
+// bcrypt's CompareHashAndPassword function
+func ComparePasswords(hashedPwd string, plainPwd string) error {
 	byteHash := []byte(hashedPwd)
-	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
+	bytePwd := []byte(plainPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, bytePwd)
 	if err != nil {
 		log.Println(err)
-		return false
+		return errors.New("invalid credentials")
 	}
 
-	return true
+	return nil
 }

@@ -1,14 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-
 	"github.com/subosito/gotenv"
 
-	login "go-distributed/internal/login"
-	"go-distributed/pkg/dbclient"
+	auth "go-distributed/internal/auth"
 )
 
 func init() {
@@ -18,12 +13,6 @@ func init() {
 const port = "8080"
 
 func main() {
-	l := login.NewLogin()
-
-	l.DB = dbclient.NewDB()
-	defer l.DB.Close()
-
-	l.InitRouter()
-	fmt.Println("login server listening at localhost:", port)
-	log.Fatal(http.ListenAndServe(":"+port, l.Router))
+	a := auth.NewAuth()
+	a.StartAuthServer("auth server listening at localhost:", port)
 }

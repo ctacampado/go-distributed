@@ -1,4 +1,4 @@
-TARGET = login_svc
+TARGET = auth
 BIN = ./bin
 CMD_BLD = go build
 FLAGS = -o ${TARGET}
