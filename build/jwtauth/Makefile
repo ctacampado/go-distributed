@@ -1,5 +1,5 @@
 TARGET = jwtauth
-ROOTDIR = ../../
+ROOTDIR = ../..
 BIN = ${ROOTDIR}/bin
 CMD_BLD = go build
 FLAGS = -o ${TARGET}

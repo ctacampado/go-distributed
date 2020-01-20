@@ -1,18 +1,18 @@
 package main
 
 import (
-	"github.com/subosito/gotenv"
-
 	uauth "go-distributed/internal/uauth"
+	"os"
+
+	"github.com/subosito/gotenv"
 )
 
 func init() {
 	gotenv.Load()
 }
 
-const port = "8080"
-
 func main() {
+	port := os.Getenv("LOGIN_PORT")
 	a := uauth.NewUAuth()
 	a.StartUAuthServer("auth server listening at localhost:", port)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-distributed/internal/jwtauth"
+	"os"
 
 	"github.com/subosito/gotenv"
 )
@@ -10,10 +11,8 @@ func init() {
 	gotenv.Load()
 }
 
-const port = "8081"
-
 func main() {
-
+	port := os.Getenv("JWT_PORT")
 	j := jwtauth.NewJWTServer()
 	j.StartJWTServer("jwt server listening at localhost:", port)
 }
