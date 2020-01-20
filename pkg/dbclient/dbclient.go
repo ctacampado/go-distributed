@@ -2,7 +2,6 @@ package dbclient
 
 import (
 	"database/sql"
-	"os"
 
 	_ "github.com/lib/pq" //pq
 )
@@ -42,17 +41,8 @@ func InitDB(params *DBParams) *sql.DB {
 }
 
 // NewDB returns an initialized sql.DB pointer
-func NewDB() *sql.DB {
-	params := &DBParams{
-		Addr: DBAddr{
-			DBname: os.Getenv("DB_NAME"),
-			Host:   os.Getenv("DB_HOST"),
-			Port:   os.Getenv("DB_PORT"),
-		},
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
-		Sslmode:  os.Getenv("DB_SSL_MODE"),
-	}
+func NewDB(p *DBParams) *sql.DB {
+	params := p
 	return InitDB(params)
 }
 

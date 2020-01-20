@@ -1,11 +1,11 @@
-TARGET = auth
-BIN = ./bin
-CMD_BLD = go build
-FLAGS = -o ${TARGET}
-FILES = cmd/login/main.go
+UAUTH_DIR = build/uauth
+JWTAUTH_DIR = build/jwtauth
 
-all: build
+all: build-uauth build-jwtauth
 clean:
-	rm ${BIN}/${TARGET}
-build:
-	${CMD_BLD} ${FLAGS} ${FILES}; mv ${TARGET} ${BIN}
+	cd ${UAUTH_DIR} && $(MAKE) clean
+	cd ${JWTAUTH_DIR} && $(MAKE) clean
+build-uauth:
+	cd ${UAUTH_DIR} && $(MAKE) all
+build-jwtauth:
+	cd ${JWTAUTH_DIR} && $(MAKE) all
