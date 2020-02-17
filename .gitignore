@@ -1,4 +1,5 @@
 # Config files
+.env
 *.env
 
 # Binaries for programs and plugins

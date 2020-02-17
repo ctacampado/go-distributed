@@ -24,12 +24,13 @@ type DBParams struct {
 //InitDB -
 func InitDB(params *DBParams) *sql.DB {
 	var dbinfo string
+	dbinfo += "user=" + params.User
+
 	if 0 != len(params.Password) {
-		dbinfo += "user=" + params.Password
+		dbinfo += " password=" + params.Password
 	}
 
-	dbinfo += "user=" + params.User +
-		" dbname=" + params.Addr.DBname +
+	dbinfo += " dbname=" + params.Addr.DBname +
 		" sslmode=" + params.Sslmode +
 		" port=" + params.Addr.Port
 
