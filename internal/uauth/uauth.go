@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/go-chi/chi"
 )
@@ -13,8 +14,9 @@ import (
 // UAuth structure holds pointers necessary for the User Authentication
 // service to work. These pointers are for the router, and the database
 type UAuth struct {
-	Router *chi.Mux
-	DB     *sql.DB
+	Router   *chi.Mux
+	DB       *sql.DB
+	AcctType int // 1-User 2-Admin
 }
 
 // NewUAuth initializes a User Auth Server
@@ -29,12 +31,19 @@ func NewUAuth() *UAuth {
 		Password: os.Getenv("LOGIN_DB_PASSWORD"),
 		Sslmode:  os.Getenv("LOGIN_DB_SSL_MODE"),
 	}
-	au := &UAuth{
-		DB:     dbclient.NewDB(params),
-		Router: chi.NewRouter(),
+
+	accttype, err := strconv.Atoi(os.Getenv("LOGIN_TYPE"))
+	if err != nil {
+		log.Fatal("failed to get LOGIN_TYPE")
 	}
-	au.InitRouter()
-	return au
+
+	ua := &UAuth{
+		DB:       dbclient.NewDB(params),
+		Router:   chi.NewRouter(),
+		AcctType: accttype,
+	}
+	ua.InitRouter()
+	return ua
 }
 
 // StartUAuthServer starts an http listener hosted at localhost:port
